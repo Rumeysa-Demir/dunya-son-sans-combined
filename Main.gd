@@ -25,13 +25,13 @@ const PORTRAITS = {
 var money: int
 var pollution: int
 var support: int
-var health: int
 var turn: int
 var saving: int
 var bonus_energy: int
 var bonus_demand: int
 var discount: int
 var selected: int = 0
+var selected_cell := -1
 var board: Array = []
 var deck: Array = []
 var resolved: int = 0
@@ -230,9 +230,9 @@ func build_metrics(root: VBoxContainer) -> void:
 	var metrics_row := HBoxContainer.new()
 	metrics_row.add_theme_constant_override("separation", 12)
 	root.add_child(metrics_row)
-	var keys := ["money", "energy", "pollution", "people", "health"]
-	var names := ["BÜTÇE", "ENERJİ ARZI", "KİRLİLİK", "HALK DESTEĞİ", "SAĞLIK"]
-	var icons := ["icon_money", "icon_energy", "icon_pollution", "icon_people", "icon_environment"]
+	var keys := ["money", "energy", "pollution", "people"]
+	var names := ["BÜTÇE", "ENERJİ ARZI", "KİRLİLİK", "HALK DESTEĞİ"]
+	var icons := ["icon_money", "icon_energy", "icon_pollution", "icon_people"]
 	for i in keys.size():
 		var metric_panel := PanelContainer.new()
 		metric_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -347,6 +347,10 @@ func build_planning(parent: PanelContainer) -> void:
 		shop_names.append(name_label)
 		shop_stats.append(stats_label)
 		shops.append(shop)
+	var close_button := button_at(box, "SANTRALİ KAPAT", close_selected_plant, Color("#3a2630"))
+	close_button.custom_minimum_size.y = 42
+	close_button.disabled = true
+	close_button.name = "ClosePlantButton"
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(spacer)
@@ -684,10 +688,10 @@ func restart() -> void:
 	money = D.START_MONEY
 	pollution = 0
 	support = 70
-	health = 76
 	turn = 1
 	saving = 0
 	selected = 0
+	selected_cell = -1
 	board = []
 	board.resize(16)
 	board.fill(-1)
@@ -760,6 +764,20 @@ func price(kind: int) -> int:
 
 func select_plant(kind: int) -> void:
 	selected = kind
+	selected_cell = -1
+	refresh()
+
+func close_selected_plant() -> void:
+	if phase not in ["build", "review"] or selected_cell < 0:
+		return
+	var closed_kind: int = board[selected_cell]
+	if closed_kind < 0:
+		selected_cell = -1
+		refresh()
+		return
+	board[selected_cell] = -1
+	info.text = "%s santrali kapatıldı ve arazisi boşaltıldı." % D.PLANTS[closed_kind].name
+	selected_cell = -1
 	refresh()
 
 func hover_cell(index: int) -> void:
@@ -772,19 +790,26 @@ func hover_cell(index: int) -> void:
 	if board[index] >= 0:
 		var plant: Dictionary = D.PLANTS[board[index]]
 		board_view.show_hover(-1, false)
-		board_view.tooltip_text = "%s: %d enerji / %d kirlilik" % [plant.name, plant.energy, plant.pollution]
+		board_view.tooltip_text = "%s: seçmek için tıkla" % plant.name
 		return
 	board_view.tooltip_text = "Boş arazi: seçili santrali kur"
 	board_view.show_hover(index if phase in ["build", "review"] else -1, money >= price(selected))
 
 func place(index: int) -> void:
-	if phase not in ["build", "review"] or board[index] != -1:
+	if phase not in ["build", "review"]:
+		return
+	if board[index] >= 0:
+		selected_cell = index
+		selected = board[index]
+		info.text = "%s seçildi. Sağdaki düğmeyle santrali kapatabilirsin." % D.PLANTS[selected].name
+		refresh()
 		return
 	if money < price(selected):
 		info.text = "Bu santral için bütçen yetmiyor."
 		return
 	money -= price(selected)
 	board[index] = selected
+	selected_cell = -1
 	info.text = "%s kuruldu. Enerji arzı ve kirlilik göstergeleri güncellendi." % D.PLANTS[selected].name
 	refresh()
 	if phase == "build" and installed_plant_count() >= next_plant_event_count:
@@ -879,7 +904,7 @@ func _refresh_card_layout_after_frame() -> void:
 		layout_card_overlay()
 
 func effects_text(effects: Dictionary) -> String:
-	var names := {"money":"Bütçe", "pollution":"Kirlilik", "support":"Halk", "health":"Sağlık", "demand":"Geçici ihtiyaç", "energy":"Geçici enerji", "discount":"Güneş indirimi", "saving":"Kalıcı tasarruf"}
+	var names := {"money":"Bütçe", "pollution":"Kirlilik", "support":"Halk", "demand":"Geçici ihtiyaç", "energy":"Geçici enerji", "discount":"Güneş indirimi", "saving":"Kalıcı tasarruf"}
 	var parts := PackedStringArray()
 	for key in effects:
 		parts.append("%s %+d" % [names[key], effects[key]])
@@ -954,7 +979,6 @@ func apply_effects(effects: Dictionary) -> void:
 	money += int(effects.get("money", 0))
 	pollution = clampi(pollution + int(effects.get("pollution", 0)), 0, 100)
 	support = clampi(support + int(effects.get("support", 0)), 0, 100)
-	health = clampi(health + int(effects.get("health", 0)), 0, 100)
 	bonus_energy += int(effects.get("energy", 0))
 	bonus_demand += int(effects.get("demand", 0))
 	discount += int(effects.get("discount", 0))
@@ -962,8 +986,8 @@ func apply_effects(effects: Dictionary) -> void:
 	info.text = "Karar uygulandı: " + effects_text(effects)
 
 func check_loss() -> bool:
-	if money < 0 or pollution >= 100 or support <= 0 or health <= 0:
-		finish("OYUN BİTTİ", "Bütçe, gezegen, sağlık veya halk desteği kritik eşiği geçti.")
+	if money < 0 or pollution >= 100 or support <= 0:
+		finish("OYUN BİTTİ", "Bütçe, gezegen veya halk desteği kritik eşiği geçti.")
 		return true
 	return false
 
@@ -982,7 +1006,6 @@ func refresh() -> void:
 	metrics[1].text = "ENERJİ ARZI\n%d / %d" % [energy(), demand()]
 	metrics[2].text = "KİRLİLİK\n%d / 100" % pollution
 	metrics[3].text = "HALK DESTEĞİ\n%d / 100" % support
-	metrics[4].text = "SAĞLIK\n%d / 100" % health
 	selected_hint.text = "SEÇİLİ SANTRAL  •  %s  •  %d BÜTÇE" % [D.PLANTS[selected].name.to_upper(), price(selected)]
 	if board_view != null:
 		board_view.set_board(board, phase in ["build", "review"])
@@ -993,6 +1016,10 @@ func refresh() -> void:
 		shop_stats[i].text = "◉ %d bütçe   ⚡ %d enerji   ☣ %d kirlilik" % [price(i), plant.energy, plant.pollution]
 		shops[i].tooltip_text = "%s\n◉ Maliyet: %d bütçe\n⚡ Enerji: +%d\n☣ Kirlilik: +%d" % [plant.name, price(i), plant.energy, plant.pollution]
 		shops[i].disabled = phase not in ["build", "review"]
+	var close_button := planning_panel.find_child("ClosePlantButton", true, false) as Button
+	if close_button != null:
+		close_button.disabled = phase not in ["build", "review"] or selected_cell < 0
+		close_button.text = "SANTRALİ KAPAT" if selected_cell >= 0 else "SANTRAL SEÇ"
 	planning_panel.visible = phase != "cards"
 	map_panel.modulate = Color(0.55, 0.7, 0.76, 1.0) if phase == "cards" else Color.WHITE
 	if phase == "build":
