@@ -46,6 +46,8 @@ var plant_images: Array = []
 var tiles: Array[Button] = []
 var shops: Array[Button] = []
 var shop_icons: Array[TextureRect] = []
+var shop_names: Array[Label] = []
+var shop_stats: Array[Label] = []
 var tile_pictures: Array[TextureRect] = []
 var tile_frames: Array[TextureRect] = []
 var terrain_tiles: Array[Button] = []
@@ -319,18 +321,31 @@ func build_planning(parent: PanelContainer) -> void:
 	for i in range(D.PLANTS.size()):
 		var shop := button_at(plant_list, "", select_plant.bind(i))
 		shop.custom_minimum_size = Vector2(0, 76)
-		shop.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		shop.add_theme_constant_override("outline_size", 0)
+		var content := HBoxContainer.new()
+		content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		content.add_theme_constant_override("separation", 10)
+		content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		shop.add_child(content)
 		var icon := TextureRect.new()
 		icon.texture = plant_images[i]
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		icon.position = Vector2(10, 6)
-		icon.size = Vector2(58, 64)
+		icon.custom_minimum_size = Vector2(58, 64)
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		shop.add_child(icon)
+		content.add_child(icon)
+		var text_box := VBoxContainer.new()
+		text_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		text_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		text_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		content.add_child(text_box)
+		var name_label := label_at(text_box, 15, Color("#d5e1e5"))
+		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var stats_label := label_at(text_box, 13, Color("#b2c7cf"))
+		stats_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		shop_icons.append(icon)
+		shop_names.append(name_label)
+		shop_stats.append(stats_label)
 		shops.append(shop)
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -974,7 +989,8 @@ func refresh() -> void:
 		hover_cell(board_view.pointer_cell)
 	for i in range(shops.size()):
 		var plant: Dictionary = D.PLANTS[i]
-		shops[i].text = "      %s\n      ◉ %d bütçe   ⚡ %d enerji   ☣ %d kirlilik" % [plant.name, price(i), plant.energy, plant.pollution]
+		shop_names[i].text = ("%s  " % ("◆" if selected == i else "○")) + plant.name
+		shop_stats[i].text = "◉ %d bütçe   ⚡ %d enerji   ☣ %d kirlilik" % [price(i), plant.energy, plant.pollution]
 		shops[i].tooltip_text = "%s\n◉ Maliyet: %d bütçe\n⚡ Enerji: +%d\n☣ Kirlilik: +%d" % [plant.name, price(i), plant.energy, plant.pollution]
 		shops[i].disabled = phase not in ["build", "review"]
 	planning_panel.visible = phase != "cards"
