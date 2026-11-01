@@ -1,0 +1,36 @@
+[gd_resource type="Theme" load_steps=7 format=3]
+
+[ext_resource type="FontFile" path="res://assets/Fonts/Oxanium-ExtraBold.ttf" id="1_oxanium"]
+[ext_resource type="FontFile" path="res://assets/Fonts/Rajdhani-Bold.ttf" id="2_rajdhani_bold"]
+[ext_resource type="FontFile" path="res://assets/Fonts/Rajdhani-Medium.ttf" id="3_rajdhani_medium"]
+[ext_resource type="FontFile" path="res://assets/Fonts/Exo2-Medium.ttf" id="4_exo_medium"]
+[ext_resource type="FontFile" path="res://assets/Fonts/Exo2-SemiBold.ttf" id="5_exo_semibold"]
+[ext_resource type="FontFile" path="res://assets/Fonts/Oxanium-ExtraBold.ttf" id="6_oxanium_bold"]
+
+[resource]
+default_font = ExtResource("4_exo_medium")
+default_font_size = 16
+
+FateCardTitle/fonts/font = ExtResource("1_oxanium")
+FateCardTitle/font_sizes/font_size = 32
+FateCardTitle/colors/font_color = Color(0.835, 0.882, 0.898, 1)
+
+FateCardCategory/fonts/font = ExtResource("2_rajdhani_bold")
+FateCardCategory/font_sizes/font_size = 18
+FateCardCategory/colors/font_color = Color(0.224, 0.863, 0.796, 1)
+
+FateCardBody/fonts/font = ExtResource("4_exo_medium")
+FateCardBody/font_sizes/font_size = 18
+FateCardBody/colors/font_color = Color(0.835, 0.882, 0.898, 1)
+
+FateCardEffects/fonts/font = ExtResource("5_exo_semibold")
+FateCardEffects/font_sizes/font_size = 15
+FateCardEffects/colors/font_color = Color(0.518, 0.667, 0.71, 1)
+
+FateCardChoice/fonts/font = ExtResource("6_oxanium_bold")
+FateCardChoice/font_sizes/font_size = 26
+
+FateCardTechnical/fonts/font = ExtResource("3_rajdhani_medium")
+FateCardTechnical/font_sizes/font_size = 13
+FateCardTechnical/colors/font_color = Color(0.557, 0.667, 0.714, 1)
+
