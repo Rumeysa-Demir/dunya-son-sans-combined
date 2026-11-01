@@ -275,12 +275,16 @@ func build_map(parent: PanelContainer) -> void:
 	for side in ["left", "right", "top", "bottom"]:
 		grid_margin.add_theme_constant_override("margin_" + side, 18)
 	grid_panel.add_child(grid_margin)
+	var board_center := CenterContainer.new()
+	board_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	board_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	grid_margin.add_child(board_center)
 	board_view = IsoBoard.new()
-	board_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	board_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	board_view.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	board_view.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	board_view.cell_pressed.connect(place)
 	board_view.cell_hovered.connect(hover_cell)
-	grid_margin.add_child(board_view)
+	board_center.add_child(board_view)
 	var hint := label_at(box, 13, Color("#5b8493"))
 	hint.text = "Her santral bir arazi karesi kaplar. Hover sırasında arazi ve santral bilgisi gösterilir."
 
