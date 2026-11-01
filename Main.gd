@@ -88,7 +88,6 @@ var card_stage: Control
 var card_margin: MarginContainer
 var cards_to_resolve: int = 0
 var card_home_position := Vector2.ZERO
-var end_turn_button: Button
 var next_plant_event_count := 5
 var drag_origin := Vector2.ZERO
 var card_origin := Vector2.ZERO
@@ -347,8 +346,6 @@ func build_planning(parent: PanelContainer) -> void:
 	close_button.custom_minimum_size.y = 42
 	close_button.disabled = true
 	close_button.name = "ClosePlantButton"
-	end_turn_button = button_at(box, "TURU BİTİR", end_turn, Color("#17445a"))
-	end_turn_button.custom_minimum_size.y = 42
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(spacer)
@@ -1026,8 +1023,6 @@ func refresh() -> void:
 	if close_button != null:
 		close_button.disabled = phase not in ["build", "review"] or selected_cell < 0
 		close_button.text = "SANTRALİ KAPAT" if selected_cell >= 0 else "SANTRAL SEÇ"
-	if end_turn_button != null:
-		end_turn_button.disabled = phase != "build"
 	planning_panel.visible = phase != "cards"
 	map_panel.modulate = Color(0.55, 0.7, 0.76, 1.0) if phase == "cards" else Color.WHITE
 	if phase == "build":
