@@ -26,6 +26,8 @@ var money: int
 var pollution: int
 var support: int
 var turn: int
+var actions_left: int
+const ACTIONS_PER_TURN := 3
 var saving: int
 var bonus_energy: int
 var bonus_demand: int
@@ -86,7 +88,7 @@ var card_stage: Control
 var card_margin: MarginContainer
 var cards_to_resolve: int = 0
 var card_home_position := Vector2.ZERO
-var simulation_timer: Timer
+var end_turn_button: Button
 var next_plant_event_count := 5
 var drag_origin := Vector2.ZERO
 var card_origin := Vector2.ZERO
@@ -203,12 +205,6 @@ func build_ui() -> void:
 	build_footer(root)
 	build_card_overlay()
 	card_overlay.theme = card_theme
-	simulation_timer = Timer.new()
-	simulation_timer.wait_time = 9.0
-	simulation_timer.one_shot = false
-	simulation_timer.timeout.connect(simulation_pulse)
-	add_child(simulation_timer)
-	simulation_timer.start()
 
 func build_header(root: VBoxContainer) -> void:
 	var header := HBoxContainer.new()
@@ -222,9 +218,9 @@ func build_header(root: VBoxContainer) -> void:
 	center.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	turn_label = label_at(header, 16, Color("#ffc857"))
-	turn_label.text = "CANLI SİMÜLASYON  •  2026"
+	turn_label.text = "TUR 1  •  EYLEM 3/3"
 	turn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	turn_label.custom_minimum_size.x = 260
+	turn_label.custom_minimum_size.x = 300
 
 func build_metrics(root: VBoxContainer) -> void:
 	var metrics_row := HBoxContainer.new()
@@ -351,6 +347,8 @@ func build_planning(parent: PanelContainer) -> void:
 	close_button.custom_minimum_size.y = 42
 	close_button.disabled = true
 	close_button.name = "ClosePlantButton"
+	end_turn_button = button_at(box, "TURU BİTİR", end_turn, Color("#17445a"))
+	end_turn_button.custom_minimum_size.y = 42
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(spacer)
@@ -689,6 +687,7 @@ func restart() -> void:
 	pollution = 0
 	support = 70
 	turn = 1
+	actions_left = ACTIONS_PER_TURN
 	saving = 0
 	selected = 0
 	selected_cell = -1
@@ -712,9 +711,10 @@ func start_turn() -> void:
 	resolved = 0
 	phase = "build"
 	current = {}
+	actions_left = ACTIONS_PER_TURN
 	refresh()
 
-func simulation_pulse() -> void:
+func end_turn() -> void:
 	if phase != "build":
 		return
 	var gap: int = maxi(0, demand() - energy())
@@ -730,7 +730,17 @@ func simulation_pulse() -> void:
 	bonus_energy = 0
 	bonus_demand = 0
 	discount = 0
-	refresh()
+	if should_trigger_cards():
+		begin_card_phase()
+	else:
+		start_turn()
+
+func consume_action() -> void:
+	actions_left = maxi(0, actions_left - 1)
+	if actions_left == 0:
+		end_turn()
+	else:
+		refresh()
 
 func energy() -> int:
 	var total: int = bonus_energy
@@ -778,7 +788,7 @@ func close_selected_plant() -> void:
 	board[selected_cell] = -1
 	info.text = "%s santrali kapatıldı ve arazisi boşaltıldı." % D.PLANTS[closed_kind].name
 	selected_cell = -1
-	refresh()
+	consume_action()
 
 func hover_cell(index: int) -> void:
 	if board_view == null:
@@ -811,9 +821,7 @@ func place(index: int) -> void:
 	board[index] = selected
 	selected_cell = -1
 	info.text = "%s kuruldu. Enerji arzı ve kirlilik göstergeleri güncellendi." % D.PLANTS[selected].name
-	refresh()
-	if phase == "build" and installed_plant_count() >= next_plant_event_count:
-		begin_card_phase()
+	consume_action()
 
 func begin_card_phase() -> void:
 	phase = "cards"
@@ -964,14 +972,12 @@ func choose(side: String) -> void:
 	if check_loss():
 		return
 	if resolved >= cards_to_resolve:
-		phase = "build"
 		card_overlay.visible = false
 		bonus_energy = 0
 		bonus_demand = 0
 		discount = 0
-		turn += 1
 		info.text = "Karar uygulandı. Şehir akışı devam ediyor; yeni olaylar koşullar oluştuğunda açılacak."
-		refresh()
+		start_turn()
 	else:
 		draw_card()
 
@@ -1001,7 +1007,7 @@ func should_trigger_cards() -> bool:
 	return installed_plant_count() >= next_plant_event_count
 
 func refresh() -> void:
-	turn_label.text = "CANLI SİMÜLASYON  •  %d YILI" % (2025 + turn)
+	turn_label.text = "TUR %d  •  EYLEM %d/%d" % [turn, actions_left, ACTIONS_PER_TURN]
 	metrics[0].text = "BÜTÇE\n%d" % money
 	metrics[1].text = "ENERJİ ARZI\n%d / %d" % [energy(), demand()]
 	metrics[2].text = "KİRLİLİK\n%d / 100" % pollution
@@ -1020,6 +1026,8 @@ func refresh() -> void:
 	if close_button != null:
 		close_button.disabled = phase not in ["build", "review"] or selected_cell < 0
 		close_button.text = "SANTRALİ KAPAT" if selected_cell >= 0 else "SANTRAL SEÇ"
+	if end_turn_button != null:
+		end_turn_button.disabled = phase != "build"
 	planning_panel.visible = phase != "cards"
 	map_panel.modulate = Color(0.55, 0.7, 0.76, 1.0) if phase == "cards" else Color.WHITE
 	if phase == "build":
