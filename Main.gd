@@ -195,10 +195,10 @@ func build_ui() -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 26)
+		margin.add_theme_constant_override("margin_" + side, 20)
 	add_child(margin)
 	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", 14)
+	root.add_theme_constant_override("separation", 10)
 	margin.add_child(root)
 	build_header(root)
 	build_metrics(root)
@@ -263,8 +263,10 @@ func build_body(root: VBoxContainer) -> void:
 
 func build_map(parent: PanelContainer) -> void:
 	var margin := MarginContainer.new()
-	for side in ["left", "right", "top", "bottom"]:
+	for side in ["left", "right"]:
 		margin.add_theme_constant_override("margin_" + side, 20)
+	for side in ["top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 10)
 	parent.add_child(margin)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
@@ -278,8 +280,10 @@ func build_map(parent: PanelContainer) -> void:
 	grid_panel.add_theme_stylebox_override("panel", panel_style(Color("#071824"), Color("#214e5c"), 1, 12))
 	box.add_child(grid_panel)
 	var grid_margin := MarginContainer.new()
-	for side in ["left", "right", "top", "bottom"]:
+	for side in ["left", "right"]:
 		grid_margin.add_theme_constant_override("margin_" + side, 18)
+	for side in ["top", "bottom"]:
+		grid_margin.add_theme_constant_override("margin_" + side, 10)
 	grid_panel.add_child(grid_margin)
 	var board_center := CenterContainer.new()
 	board_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -358,7 +362,7 @@ func build_planning(parent: PanelContainer) -> void:
 
 func build_footer(root: VBoxContainer) -> void:
 	var footer := PanelContainer.new()
-	footer.custom_minimum_size.y = 74
+	footer.custom_minimum_size.y = 56
 	footer.add_theme_stylebox_override("panel", panel_style(Color("#081925"), Color("#1d4d5b"), 1, 12))
 	root.add_child(footer)
 	var box := HBoxContainer.new()
@@ -368,7 +372,7 @@ func build_footer(root: VBoxContainer) -> void:
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	reset_button = button_at(box, "YENİ OYUN", restart, Color("#172a39"))
-	reset_button.custom_minimum_size = Vector2(130, 42)
+	reset_button.custom_minimum_size = Vector2(130, 36)
 
 func build_card_overlay() -> void:
 	card_overlay = Control.new()
