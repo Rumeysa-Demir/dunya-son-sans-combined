@@ -7,7 +7,7 @@ signal cell_hovered(index: int) # imleç tahtadan çıkınca -1
 
 const PixelAnim = preload("res://scripts/ui/pixel_anim.gd")
 
-const SCALE := 2                      # tam sayı ölçek: pikseller bozulmaz
+const SCALE := 2.3                    # arazi panelini daha dolu göstermek için ölçek
 const OX := 132                       # 0,0 karesinin üst köşesi (tuval pikseli)
 const OY := 80
 const CANVAS := Vector2(264, 240)

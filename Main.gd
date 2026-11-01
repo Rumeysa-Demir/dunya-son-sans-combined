@@ -45,6 +45,7 @@ var exo_font: Font
 var plant_images: Array = []
 var tiles: Array[Button] = []
 var shops: Array[Button] = []
+var shop_icons: Array[TextureRect] = []
 var tile_pictures: Array[TextureRect] = []
 var tile_frames: Array[TextureRect] = []
 var terrain_tiles: Array[Button] = []
@@ -318,10 +319,18 @@ func build_planning(parent: PanelContainer) -> void:
 	for i in range(D.PLANTS.size()):
 		var shop := button_at(plant_list, "", select_plant.bind(i))
 		shop.custom_minimum_size = Vector2(0, 76)
-		shop.icon = plant_images[i]
-		shop.expand_icon = true
-		shop.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		shop.add_theme_constant_override("h_separation", 12)
+		shop.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		shop.add_theme_constant_override("outline_size", 0)
+		var icon := TextureRect.new()
+		icon.texture = plant_images[i]
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		icon.position = Vector2(10, 6)
+		icon.size = Vector2(58, 64)
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		shop.add_child(icon)
+		shop_icons.append(icon)
 		shops.append(shop)
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -965,7 +974,7 @@ func refresh() -> void:
 		hover_cell(board_view.pointer_cell)
 	for i in range(shops.size()):
 		var plant: Dictionary = D.PLANTS[i]
-		shops[i].text = ("%s  " % ("◆" if selected == i else "○")) + "%s\n◉ %d bütçe   ⚡ %d enerji   ☣ %d kirlilik" % [plant.name, price(i), plant.energy, plant.pollution]
+		shops[i].text = "      %s\n      ◉ %d bütçe   ⚡ %d enerji   ☣ %d kirlilik" % [plant.name, price(i), plant.energy, plant.pollution]
 		shops[i].tooltip_text = "%s\n◉ Maliyet: %d bütçe\n⚡ Enerji: +%d\n☣ Kirlilik: +%d" % [plant.name, price(i), plant.energy, plant.pollution]
 		shops[i].disabled = phase not in ["build", "review"]
 	planning_panel.visible = phase != "cards"
