@@ -11,5 +11,5 @@ func apply_decision(card: Dictionary, decision: String, stats: Dictionary) -> Di
 	return effects.duplicate()
 
 func clamp_stats(stats: Dictionary) -> void:
-	for key in ["budget", "population", "energy", "energy_consumption", "ecology", "pollution", "happiness", "employment", "health", "fossil_dependency"]:
+	for key in ["budget", "population", "energy", "energy_consumption", "ecology", "pollution", "happiness", "employment", "fossil_dependency"]:
 		stats[key] = clampi(int(stats.get(key, 0)), 0, 100)

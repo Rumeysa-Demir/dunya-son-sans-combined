@@ -13,7 +13,7 @@ Godot 4 ile hazırlanan oynanabilir City Grid / şehir kurma demosu. Şehir inş
 
 ## Görsel akış
 
-- Üst HUD: bütçe, enerji arzı, kirlilik, halk desteği ve sağlık.
+- Üst HUD: bütçe, enerji arzı, kirlilik ve halk desteği.
 - Ana ekran: 4×4 şehir planlama ağı ve santral seçimi.
 - Ağın genişletme alanı: kıyı bölgesi, zehirli orman, çorak arazi ve su havzası için dört görsel arazi hücresi.
 - Kader aşaması: oyun alanını karartan, ortada portreli ve neon çerçeveli kart; iki yanda sabit yükseklikte karar bölgeleri ve arkada deste görünümü.
@@ -30,7 +30,7 @@ Godot 4 ile hazırlanan oynanabilir City Grid / şehir kurma demosu. Şehir inş
 ## Dosya yapısı
 
 - `Main.gd`: birleşik oynanabilir oyun, canlı simülasyon akışı ve kader kartı sunumu. Başlangıç bütçesi ve canlı gelir dengesi uzun oyun oturumları için ayarlanmıştır.
-- `Data.gd`: santraller, kartlar ve denge değerleri. Kartlar artık aynı kararda bütçe, enerji, kirlilik, halk, sağlık ve talebi birlikte etkileyebilir.
+- `Data.gd`: santraller, kartlar ve denge değerleri. Kartlar bütçe, enerji, kirlilik, halk desteği ve talebi birlikte etkileyebilir.
 - `assets/`: oyun ikonları, portreler, santral ve arazi görselleri.
 - `fate-card-system/`: önceki bağımsız, JSON tabanlı Fate Cards modülleri, yönetim paneli ve entegrasyon örnekleri.
 

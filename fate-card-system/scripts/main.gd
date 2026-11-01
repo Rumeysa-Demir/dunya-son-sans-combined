@@ -9,7 +9,7 @@ var current_index := 0
 var stats := {
 	"budget": 72, "population": 48, "energy": 54, "energy_consumption": 42,
 	"ecology": 51, "pollution": 32, "happiness": 63, "employment": 58,
-	"health": 70, "fossil_dependency": 44
+	"fossil_dependency": 44
 }
 var card_host: Control
 var status_label: Label
@@ -142,7 +142,7 @@ func _render_stats() -> void:
 		return
 	for child in stats_grid.get_children():
 		child.queue_free()
-	for key in ["budget", "population", "energy", "ecology", "pollution", "happiness", "health", "fossil_dependency"]:
+	for key in ["budget", "population", "energy", "ecology", "pollution", "happiness", "employment", "fossil_dependency"]:
 		var name := Label.new()
 		name.text = FateCardModels.STAT_NAMES[key]
 		name.modulate = TEXT_MUTED
