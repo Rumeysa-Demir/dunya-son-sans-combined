@@ -727,10 +727,7 @@ func end_turn() -> void:
 	bonus_energy = 0
 	bonus_demand = 0
 	discount = 0
-	if should_trigger_cards():
-		begin_card_phase()
-	else:
-		start_turn()
+	begin_card_phase()
 
 func consume_action() -> void:
 	actions_left = maxi(0, actions_left - 1)
@@ -826,6 +823,7 @@ func begin_card_phase() -> void:
 	cards_to_resolve = 2
 	next_plant_event_count += 3
 	draw_card()
+	refresh()
 
 func draw_card() -> void:
 	if deck.is_empty():
