@@ -35,6 +35,7 @@ var discount: int
 var selected: int = 0
 var selected_cell := -1
 var board: Array = []
+var board_costs: Array = []
 var deck: Array = []
 var resolved: int = 0
 var phase: String = "build"
@@ -691,6 +692,9 @@ func restart() -> void:
 	board = []
 	board.resize(16)
 	board.fill(-1)
+	board_costs = []
+	board_costs.resize(16)
+	board_costs.fill(0)
 	board[0] = 0
 	board[1] = 2
 	deck.clear()
@@ -779,8 +783,11 @@ func close_selected_plant() -> void:
 		selected_cell = -1
 		refresh()
 		return
+	var refund: int = floori(float(board_costs[selected_cell]) * 0.5)
 	board[selected_cell] = -1
-	info.text = "%s santrali kapatıldı ve arazisi boşaltıldı." % D.PLANTS[closed_kind].name
+	board_costs[selected_cell] = 0
+	money += refund
+	info.text = "%s santrali kapatıldı; kurulum ücretinin %%50'si olan %d bütçe iade edildi." % [D.PLANTS[closed_kind].name, refund]
 	selected_cell = -1
 	consume_action()
 
@@ -811,8 +818,10 @@ func place(index: int) -> void:
 	if money < price(selected):
 		info.text = "Bu santral için bütçen yetmiyor."
 		return
-	money -= price(selected)
+	var paid: int = price(selected)
+	money -= paid
 	board[index] = selected
+	board_costs[index] = paid
 	selected_cell = -1
 	info.text = "%s kuruldu. Enerji arzı ve kirlilik göstergeleri güncellendi." % D.PLANTS[selected].name
 	consume_action()

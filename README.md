@@ -10,6 +10,7 @@ Godot 4 ile hazırlanan oynanabilir City Grid / şehir kurma demosu. Şehir inş
 4. Şehri normal şekilde kurmaya devam edin. Her üç yeni santral kurulduğunda iki kartlık karar zinciri anında açılır.
 5. Kartı sola sürükleyerek EVET, sağa sürükleyerek HAYIR seçin. Butonlar, A/D ve sol/sağ ok tuşları aynı karar yolunu kullanır.
 6. Karar tamamlanınca kart kapanır ve canlı şehir simülasyonu otomatik olarak devam eder.
+7. Kurulu bir santrali kapattığınızda, o santral için gerçekten ödenen kurulum ücretinin %50'si bütçeye iade edilir.
 
 ## Görsel akış
 
