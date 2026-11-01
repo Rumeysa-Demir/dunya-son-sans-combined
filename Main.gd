@@ -1059,7 +1059,7 @@ func refresh() -> void:
 	var close_button := planning_panel.find_child("ClosePlantButton", true, false) as Button
 	if close_button != null:
 		close_button.disabled = phase not in ["build", "review"]
-		close_button.text = "SANTRALİ KAPAT" if selected_cell >= 0 else ("SEÇİMİ KAPAT" if removal_mode else "SANTRAL SEÇ")
+		close_button.text = "SANTRALİ KALDIR" if selected_cell >= 0 else ("SEÇİMİ KAPAT" if removal_mode else "SANTRAL SEÇ")
 	planning_panel.visible = phase != "cards"
 	map_panel.modulate = Color(0.55, 0.7, 0.76, 1.0) if phase == "cards" else Color.WHITE
 	if phase == "build":

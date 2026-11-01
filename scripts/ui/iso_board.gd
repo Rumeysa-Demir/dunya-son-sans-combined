@@ -113,6 +113,8 @@ func set_plant_selection(index: int) -> void:
 	for i in range(_plants.size()):
 		if _kinds[i] >= 0:
 			_apply_plant_tint(i)
+	if index >= 0 and index < _plants.size() and _kinds[index] >= 0:
+		_lift_selected_plant(index)
 
 func _apply_plant_tint(index: int) -> void:
 	if index < 0 or index >= _plants.size() or _kinds[index] < 0:
@@ -122,6 +124,16 @@ func _apply_plant_tint(index: int) -> void:
 		plant.modulate = Color("#f4fff8") if index == _selected_plant else Color("#526875")
 	else:
 		plant.modulate = Color.WHITE
+
+func _lift_selected_plant(index: int) -> void:
+	var plant: Control = _plants[index]
+	var top := _tile_top(index)
+	var base_y := top.y + 34.0 - plant.size.y
+	if _plant_lift_tween:
+		_plant_lift_tween.kill()
+	_plant_lift_tween = create_tween()
+	_plant_lift_tween.tween_property(plant, "position:y", base_y - 24.0, 0.14) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func _on_plant_gui_input(event: InputEvent, index: int) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
