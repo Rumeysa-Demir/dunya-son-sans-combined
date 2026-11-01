@@ -60,8 +60,7 @@ func _ready() -> void:
 	for i in order:
 		var p := PixelAnim.new()
 		p.visible = false
-		p.mouse_filter = Control.MOUSE_FILTER_STOP
-		p.gui_input.connect(_on_plant_gui_input.bind(i))
+		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_canvas.add_child(p)
 		_plants[i] = p
 
@@ -134,11 +133,6 @@ func _lift_selected_plant(index: int) -> void:
 	_plant_lift_tween = create_tween()
 	_plant_lift_tween.tween_property(plant, "position:y", base_y - 24.0, 0.14) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-
-func _on_plant_gui_input(event: InputEvent, index: int) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		plant_pressed.emit(index)
-		get_viewport().set_input_as_handled()
 
 func set_plants_lifted(lifted: bool) -> void:
 	if lifted == _plants_lifted:
@@ -220,6 +214,17 @@ func _pick(pos: Vector2) -> int:
 		return -1
 	return int(r) * 4 + int(c)
 
+func _plant_at(pos: Vector2) -> int:
+	var local_pos := pos / float(SCALE)
+	var order: Array = range(16)
+	order.sort_custom(func(a: int, b: int) -> bool: return _depth_key(a) > _depth_key(b))
+	for i in order:
+		if _kinds[i] < 0 or not _plants[i].visible:
+			continue
+		if Rect2(_plants[i].position, _plants[i].size).has_point(local_pos):
+			return i
+	return -1
+
 
 func _set_pointer(i: int) -> void:
 	if i == pointer_cell:
@@ -232,9 +237,16 @@ func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		_set_pointer(_pick(event.position))
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var plant_index := _plant_at(event.position)
+		if plant_index >= 0:
+			plant_pressed.emit(plant_index)
+			return
 		var i := _pick(event.position)
 		if i >= 0:
-			cell_pressed.emit(i)
+			if _kinds[i] >= 0:
+				plant_pressed.emit(i)
+			else:
+				cell_pressed.emit(i)
 
 
 func _notification(what: int) -> void:
