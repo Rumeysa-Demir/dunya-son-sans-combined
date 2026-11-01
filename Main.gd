@@ -807,6 +807,7 @@ func close_selected_plant() -> void:
 	money += refund
 	info.text = "%s santrali kapatıldı; kurulum ücretinin %%50'si olan %d bütçe iade edildi." % [D.PLANTS[closed_kind].name, refund]
 	selected_cell = -1
+	removal_mode = false
 	consume_action()
 
 func hover_cell(index: int) -> void:
