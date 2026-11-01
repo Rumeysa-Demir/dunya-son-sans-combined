@@ -23,10 +23,12 @@ var _lift: TextureRect
 var _lift_ok: Texture2D = load("res://assets/pixel/tile_lift.png")
 var _lift_bad: Texture2D = load("res://assets/pixel/tile_lift_bad.png")
 var _lift_tween: Tween
+var _plant_lift_tween: Tween
 var _shown_index := -1
 var _shown_usable := true
 var _plants: Array = []
 var _kinds: Array = []
+var _plants_lifted := false
 
 
 func _ready() -> void:
@@ -101,6 +103,20 @@ func set_board(board: Array, _interactive: bool = true) -> void:
 		p.visible = true
 		_pop(p)
 
+func set_plants_lifted(lifted: bool) -> void:
+	if lifted == _plants_lifted:
+		return
+	_plants_lifted = lifted
+	var tween := create_tween().set_parallel(true)
+	for i in range(_plants.size()):
+		if _kinds[i] < 0:
+			continue
+		var plant: Control = _plants[i]
+		var top := _tile_top(i)
+		var base_y := top.y + 34.0 - plant.size.y
+		tween.tween_property(plant, "position:y", base_y - (14.0 if lifted else 0.0), 0.16) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
 
 func _pop(p: Control) -> void:
 	var end_y := p.position.y
@@ -116,6 +132,8 @@ func _pop(p: Control) -> void:
 func show_hover(index: int, usable: bool) -> void:
 	if index == _shown_index and (index < 0 or usable == _shown_usable):
 		return # aynı durum: animasyonu baştan başlatma
+	if not _plants_lifted and _shown_index >= 0 and _shown_index < _plants.size() and _kinds[_shown_index] >= 0:
+		_reset_plant_lift(_shown_index)
 	_shown_index = index
 	_shown_usable = usable
 	if _lift_tween:
@@ -134,6 +152,27 @@ func show_hover(index: int, usable: bool) -> void:
 	_lift_tween = create_tween()
 	_lift_tween.tween_property(_lift, "position:y", origin.y - LIFT_HEIGHT, 0.12) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if _kinds[index] >= 0:
+		var plant: Control = _plants[index]
+		var top := _tile_top(index)
+		var base_y := top.y + 34.0 - plant.size.y
+		if _plant_lift_tween:
+			_plant_lift_tween.kill()
+		_plant_lift_tween = create_tween()
+		_plant_lift_tween.tween_property(plant, "position:y", base_y - 14.0, 0.12) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _reset_plant_lift(index: int) -> void:
+	if index < 0 or index >= _plants.size() or _kinds[index] < 0:
+		return
+	var plant: Control = _plants[index]
+	var top := _tile_top(index)
+	var base_y := top.y + 34.0 - plant.size.y
+	if _plant_lift_tween:
+		_plant_lift_tween.kill()
+	_plant_lift_tween = create_tween()
+	_plant_lift_tween.tween_property(plant, "position:y", base_y, 0.1) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
 func _pick(pos: Vector2) -> int:

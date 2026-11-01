@@ -33,8 +33,7 @@ var bonus_energy: int
 var bonus_demand: int
 var discount: int
 var selected: int = 0
-var plant_selected := false
-var plant_selection_mode := false
+var removal_mode := false
 var selected_cell := -1
 var board: Array = []
 var board_costs: Array = []
@@ -689,8 +688,7 @@ func restart() -> void:
 	actions_left = ACTIONS_PER_TURN
 	saving = 0
 	selected = 0
-	plant_selected = false
-	plant_selection_mode = false
+	removal_mode = false
 	selected_cell = -1
 	board = []
 	board.resize(16)
@@ -774,11 +772,8 @@ func price(kind: int) -> int:
 	return maxi(0, int(D.PLANTS[kind].cost) - (discount if kind == 2 else 0))
 
 func select_plant(kind: int) -> void:
-	if not plant_selection_mode:
-		return
 	selected = kind
-	plant_selected = true
-	plant_selection_mode = false
+	removal_mode = false
 	selected_cell = -1
 	info.text = "%s seçildi. Haritadaki boş araziye tıklayarak kurabilirsin." % D.PLANTS[selected].name
 	refresh()
@@ -789,8 +784,8 @@ func planning_action() -> void:
 	if selected_cell >= 0:
 		close_selected_plant()
 		return
-	plant_selection_mode = not plant_selection_mode
-	info.text = "Kurulabilir santralleri seçmek için bir karta tıkla." if plant_selection_mode else "Santral seçimi kapatıldı."
+	removal_mode = not removal_mode
+	info.text = "Silmek istediğin santrali araziden seç." if removal_mode else "Santral silme seçimi kapatıldı."
 	refresh()
 
 func close_selected_plant() -> void:
@@ -818,25 +813,26 @@ func hover_cell(index: int) -> void:
 		return
 	if board[index] >= 0:
 		var plant: Dictionary = D.PLANTS[board[index]]
-		board_view.show_hover(-1, false)
-		board_view.tooltip_text = "%s: seçmek için tıkla" % plant.name
+		board_view.show_hover(index if removal_mode else -1, removal_mode)
+		board_view.tooltip_text = "%s: silmek için tıkla" % plant.name if removal_mode else "%s santrali" % plant.name
 		return
 	board_view.tooltip_text = "Boş arazi: seçili santrali kur"
-	board_view.show_hover(index if phase in ["build", "review"] and plant_selected else -1, plant_selected and money >= price(selected))
+	board_view.show_hover(index if phase in ["build", "review"] and not removal_mode else -1, money >= price(selected))
 
 func place(index: int) -> void:
 	if phase not in ["build", "review"]:
 		return
 	if board[index] >= 0:
+		if not removal_mode:
+			info.text = "Santrali silmek için SANTRAL SEÇ düğmesine tıklamalısın."
+			return
 		selected_cell = index
 		selected = board[index]
-		plant_selected = false
-		plant_selection_mode = false
 		info.text = "%s seçildi. Sağdaki düğmeyle santrali kapatabilirsin." % D.PLANTS[selected].name
 		refresh()
 		return
-	if not plant_selected:
-		info.text = "Önce SANTRAL SEÇ düğmesine tıklayıp bir santral seçmelisin."
+	if removal_mode:
+		info.text = "Silme modunda boş arazi seçilemez."
 		return
 	if money < price(selected):
 		info.text = "Bu santral için bütçen yetmiyor."
@@ -1039,26 +1035,25 @@ func refresh() -> void:
 	metrics[1].text = "ENERJİ ARZI\n%d / %d" % [energy(), demand()]
 	metrics[2].text = "KİRLİLİK\n%d / 100" % pollution
 	metrics[3].text = "HALK DESTEĞİ\n%d / 100" % support
-	if plant_selection_mode:
-		selected_hint.text = "SANTRAL SEÇ  •  UYGUN KARTLAR YUKARIDA"
-	elif plant_selected:
-		selected_hint.text = "SEÇİLİ SANTRAL  •  %s  •  %d BÜTÇE" % [D.PLANTS[selected].name.to_upper(), price(selected)]
+	if removal_mode:
+		selected_hint.text = "SANTRAL SİL  •  ARAZİDEKİ SANTRALLERDEN BİRİNİ SEÇ"
 	else:
-		selected_hint.text = "SANTRAL SEÇ  •  DEVAM ETMEK İÇİN BİR SANTRAL SEÇ"
+		selected_hint.text = "SEÇİLİ SANTRAL  •  %s  •  %d BÜTÇE" % [D.PLANTS[selected].name.to_upper(), price(selected)]
 	if board_view != null:
 		board_view.set_board(board, phase in ["build", "review"])
+		board_view.set_plants_lifted(removal_mode and phase in ["build", "review"])
 		hover_cell(board_view.pointer_cell)
 	for i in range(shops.size()):
 		var plant: Dictionary = D.PLANTS[i]
 		shop_names[i].text = ("%s  " % ("◆" if selected == i else "○")) + plant.name
 		shop_stats[i].text = "◉ %d bütçe   ⚡ %d enerji   ☣ %d kirlilik" % [price(i), plant.energy, plant.pollution]
 		shops[i].tooltip_text = "%s\n◉ Maliyet: %d bütçe\n⚡ Enerji: +%d\n☣ Kirlilik: +%d" % [plant.name, price(i), plant.energy, plant.pollution]
-		shops[i].disabled = phase not in ["build", "review"] or not plant_selection_mode or money < price(i)
-		animate_shop(shops[i], plant_selection_mode and money >= price(i))
+		shops[i].disabled = phase not in ["build", "review"] or money < price(i)
+		animate_shop(shops[i], false)
 	var close_button := planning_panel.find_child("ClosePlantButton", true, false) as Button
 	if close_button != null:
 		close_button.disabled = phase not in ["build", "review"]
-		close_button.text = "SANTRALİ KAPAT" if selected_cell >= 0 else ("SEÇİMİ KAPAT" if plant_selection_mode else "SANTRAL SEÇ")
+		close_button.text = "SANTRALİ KAPAT" if selected_cell >= 0 else ("SEÇİMİ KAPAT" if removal_mode else "SANTRAL SEÇ")
 	planning_panel.visible = phase != "cards"
 	map_panel.modulate = Color(0.55, 0.7, 0.76, 1.0) if phase == "cards" else Color.WHITE
 	if phase == "build":
