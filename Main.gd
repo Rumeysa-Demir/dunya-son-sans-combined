@@ -311,7 +311,11 @@ func build_planning(parent: PanelContainer) -> void:
 	box.add_child(plant_list)
 	for i in range(D.PLANTS.size()):
 		var shop := button_at(plant_list, "", select_plant.bind(i))
-		shop.custom_minimum_size.y = 64
+		shop.custom_minimum_size = Vector2(0, 76)
+		shop.icon = plant_images[i]
+		shop.icon_max_width = 58
+		shop.expand_icon = true
+		shop.add_theme_constant_override("h_separation", 12)
 		shops.append(shop)
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
