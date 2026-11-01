@@ -289,6 +289,7 @@ func build_map(parent: PanelContainer) -> void:
 	board_view.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	board_view.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	board_view.cell_pressed.connect(place)
+	board_view.plant_pressed.connect(place)
 	board_view.cell_hovered.connect(hover_cell)
 	board_center.add_child(board_view)
 	var hint := label_at(box, 13, Color("#5b8493"))
@@ -1042,6 +1043,7 @@ func refresh() -> void:
 	if board_view != null:
 		board_view.set_board(board, phase in ["build", "review"])
 		board_view.set_plants_lifted(removal_mode and phase in ["build", "review"])
+		board_view.set_plant_selection(selected_cell if removal_mode else -1)
 		hover_cell(board_view.pointer_cell)
 	for i in range(shops.size()):
 		var plant: Dictionary = D.PLANTS[i]

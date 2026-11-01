@@ -4,6 +4,7 @@ extends Control
 
 signal cell_pressed(index: int)
 signal cell_hovered(index: int) # imleç tahtadan çıkınca -1
+signal plant_pressed(index: int)
 
 const PixelAnim = preload("res://scripts/ui/pixel_anim.gd")
 
@@ -29,6 +30,7 @@ var _shown_usable := true
 var _plants: Array = []
 var _kinds: Array = []
 var _plants_lifted := false
+var _selected_plant := -1
 
 
 func _ready() -> void:
@@ -58,6 +60,8 @@ func _ready() -> void:
 	for i in order:
 		var p := PixelAnim.new()
 		p.visible = false
+		p.mouse_filter = Control.MOUSE_FILTER_STOP
+		p.gui_input.connect(_on_plant_gui_input.bind(i))
 		_canvas.add_child(p)
 		_plants[i] = p
 
@@ -101,7 +105,28 @@ func set_board(board: Array, _interactive: bool = true) -> void:
 		var top := _tile_top(i)
 		p.position = Vector2(round(top.x - p.size.x / 2.0), top.y + 34.0 - p.size.y)
 		p.visible = true
+		_apply_plant_tint(i)
 		_pop(p)
+
+func set_plant_selection(index: int) -> void:
+	_selected_plant = index
+	for i in range(_plants.size()):
+		if _kinds[i] >= 0:
+			_apply_plant_tint(i)
+
+func _apply_plant_tint(index: int) -> void:
+	if index < 0 or index >= _plants.size() or _kinds[index] < 0:
+		return
+	var plant: Control = _plants[index]
+	if _selected_plant >= 0:
+		plant.modulate = Color("#f4fff8") if index == _selected_plant else Color("#526875")
+	else:
+		plant.modulate = Color.WHITE
+
+func _on_plant_gui_input(event: InputEvent, index: int) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		plant_pressed.emit(index)
+		get_viewport().set_input_as_handled()
 
 func set_plants_lifted(lifted: bool) -> void:
 	if lifted == _plants_lifted:
