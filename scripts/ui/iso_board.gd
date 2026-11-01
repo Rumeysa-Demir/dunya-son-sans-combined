@@ -221,7 +221,12 @@ func _plant_at(pos: Vector2) -> int:
 	for i in order:
 		if _kinds[i] < 0 or not _plants[i].visible:
 			continue
-		if Rect2(_plants[i].position, _plants[i].size).has_point(local_pos):
+		var plant_rect := Rect2(_plants[i].position, _plants[i].size)
+		# Duman ve yükselen süslemeler komşu hücreye taşabilir; yalnızca gövdeyi seçilebilir yap.
+		var body_rect := plant_rect.grow(-plant_rect.size.x * 0.16)
+		body_rect.position.y += plant_rect.size.y * 0.2
+		body_rect.size.y *= 0.8
+		if body_rect.has_point(local_pos):
 			return i
 	return -1
 
@@ -237,16 +242,16 @@ func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		_set_pointer(_pick(event.position))
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var plant_index := _plant_at(event.position)
-		if plant_index >= 0:
-			plant_pressed.emit(plant_index)
-			return
 		var i := _pick(event.position)
 		if i >= 0:
 			if _kinds[i] >= 0:
 				plant_pressed.emit(i)
 			else:
 				cell_pressed.emit(i)
+			return
+		var plant_index := _plant_at(event.position)
+		if plant_index >= 0:
+			plant_pressed.emit(plant_index)
 
 
 func _notification(what: int) -> void:

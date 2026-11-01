@@ -828,6 +828,12 @@ func place(index: int) -> void:
 	if phase not in ["build", "review"]:
 		return
 	if board[index] >= 0:
+		if selected_cell == index:
+			selected_cell = -1
+			removal_mode = false
+			info.text = "Santral seçimi kaldırıldı."
+			refresh()
+			return
 		removal_mode = true
 		selected_cell = index
 		selected = board[index]
