@@ -61,8 +61,8 @@
     "description": "Bir üretim bölgesinin arıtma sistemi kapasitesini aştı. Denetim ve dönüşüm kararı gerekiyor.",
     "weight": 1.0,
     "conditions": [{"stat": "pollution", "operator": ">=", "value": 25}],
-    "yes_effects": {"budget": -7, "pollution": -15, "health": 8, "ecology": 5},
-    "no_effects": {"budget": 4, "pollution": 14, "health": -9}
+    "yes_effects": {"budget": -7, "pollution": -15, "ecology": 5},
+    "no_effects": {"budget": 4, "pollution": 14}
   },
   {
     "id": "energy-saving",
@@ -87,21 +87,8 @@
     "description": "Yeni teknik kampüs, uzun vadede istihdam ve inovasyon sağlayabilir.",
     "weight": 0.95,
     "conditions": [],
-    "yes_effects": {"budget": -9, "employment": 12, "happiness": 5, "health": 3},
+    "yes_effects": {"budget": -9, "employment": 12, "happiness": 5},
     "no_effects": {"employment": -6, "happiness": -3, "budget": 3}
-  },
-  {
-    "id": "health-clinic",
-    "active": true,
-    "category": "society",
-    "icon": "✚",
-    "title": "Mahalle Sağlık Ağı",
-    "source": "Sağlık müdürlüğü",
-    "description": "Yoğun nüfuslu bölgelerde gezici klinikler kurulması yaşam kalitesini yükseltebilir.",
-    "weight": 1.0,
-    "conditions": [{"stat": "population", "operator": ">=", "value": 40}],
-    "yes_effects": {"budget": -7, "health": 14, "happiness": 7},
-    "no_effects": {"health": -10, "happiness": -5, "budget": 2}
   },
   {
     "id": "storm-warning",
@@ -113,8 +100,8 @@
     "description": "Kıyı hattında olağanüstü bir fırtına bekleniyor. Hazırlık için kaynak ayırmak gerekiyor.",
     "weight": 0.8,
     "conditions": [{"stat": "ecology", "operator": "<", "value": 65}],
-    "yes_effects": {"budget": -6, "health": 7, "happiness": 4, "pollution": -2},
-    "no_effects": {"health": -12, "budget": -5, "happiness": -8}
+    "yes_effects": {"budget": -6, "happiness": 4, "pollution": -2},
+    "no_effects": {"budget": -5, "happiness": -8}
   },
   {
     "id": "solar-breakthrough",

@@ -3,9 +3,9 @@ extends SceneTree
 func _init() -> void:
 	var repository := FateCardRepository.new()
 	var cards := repository.load_cards()
-	assert(cards.size() >= 10)
+	assert(cards.size() >= 9)
 	var deck := FateCardDeckManager.new()
-	var stats := {"budget": 72, "population": 48, "energy": 54, "energy_consumption": 42, "ecology": 51, "pollution": 32, "happiness": 63, "employment": 58, "health": 70, "fossil_dependency": 44}
+	var stats := {"budget": 72, "population": 48, "energy": 54, "energy_consumption": 42, "ecology": 51, "pollution": 32, "happiness": 63, "employment": 58, "fossil_dependency": 44}
 	var drawn := deck.draw_cards(cards, stats, 3)
 	assert(drawn.size() == 3)
 	var ids := {}

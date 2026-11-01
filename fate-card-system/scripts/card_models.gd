@@ -10,7 +10,6 @@ const STAT_NAMES := {
 	"pollution": "Kirlilik",
 	"happiness": "Mutluluk",
 	"employment": "İstihdam",
-	"health": "Sağlık",
 	"fossil_dependency": "Fosil bağımlılığı"
 }
 
