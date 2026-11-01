@@ -313,8 +313,8 @@ func build_planning(parent: PanelContainer) -> void:
 		var shop := button_at(plant_list, "", select_plant.bind(i))
 		shop.custom_minimum_size = Vector2(0, 76)
 		shop.icon = plant_images[i]
-		shop.icon_max_width = 58
 		shop.expand_icon = true
+		shop.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		shop.add_theme_constant_override("h_separation", 12)
 		shops.append(shop)
 	var spacer := Control.new()
