@@ -3,6 +3,7 @@ extends Control
 const D = preload("res://Data.gd")
 const CARD_TYPOGRAPHY = preload("res://assets/Fonts/FateCardTypography.tres")
 const IsoBoard = preload("res://scripts/ui/iso_board.gd")
+const PixelData = preload("res://scripts/ui/pixel_data.gd")
 const ASSET_FILES = [
 	"icon_energy.png", "icon_environment.png", "icon_money.png", "icon_people.png", "icon_pollution.png",
 	"plant_coal.png", "plant_gas.png", "plant_solar.png", "plant_wind.png",
@@ -97,7 +98,12 @@ func _ready() -> void:
 	card_theme = CARD_TYPOGRAPHY
 	exo_font = card_theme.get_font("font", "FateCardBody")
 	card_font = card_theme.get_font("font", "FateCardTitle")
-	plant_images = [textures["plant_coal"], textures["plant_gas"], textures["plant_solar"], textures["plant_wind"]]
+	plant_images = [
+		PixelData.frame_texture("plant_coal"),
+		PixelData.frame_texture("plant_gas"),
+		PixelData.frame_texture("plant_solar"),
+		PixelData.frame_texture("plant_wind")
+	]
 	rng.randomize()
 	build_ui()
 	restart()
