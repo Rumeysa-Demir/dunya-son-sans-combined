@@ -33,6 +33,8 @@ var bonus_energy: int
 var bonus_demand: int
 var discount: int
 var selected: int = 0
+var plant_selected := false
+var plant_selection_mode := false
 var selected_cell := -1
 var board: Array = []
 var board_costs: Array = []
@@ -343,9 +345,8 @@ func build_planning(parent: PanelContainer) -> void:
 		shop_names.append(name_label)
 		shop_stats.append(stats_label)
 		shops.append(shop)
-	var close_button := button_at(box, "SANTRALİ KAPAT", close_selected_plant, Color("#3a2630"))
+	var close_button := button_at(box, "SANTRAL SEÇ", planning_action, Color("#3a2630"))
 	close_button.custom_minimum_size.y = 42
-	close_button.disabled = true
 	close_button.name = "ClosePlantButton"
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -688,6 +689,8 @@ func restart() -> void:
 	actions_left = ACTIONS_PER_TURN
 	saving = 0
 	selected = 0
+	plant_selected = false
+	plant_selection_mode = false
 	selected_cell = -1
 	board = []
 	board.resize(16)
@@ -771,8 +774,23 @@ func price(kind: int) -> int:
 	return maxi(0, int(D.PLANTS[kind].cost) - (discount if kind == 2 else 0))
 
 func select_plant(kind: int) -> void:
+	if not plant_selection_mode:
+		return
 	selected = kind
+	plant_selected = true
+	plant_selection_mode = false
 	selected_cell = -1
+	info.text = "%s seçildi. Haritadaki boş araziye tıklayarak kurabilirsin." % D.PLANTS[selected].name
+	refresh()
+
+func planning_action() -> void:
+	if phase not in ["build", "review"]:
+		return
+	if selected_cell >= 0:
+		close_selected_plant()
+		return
+	plant_selection_mode = not plant_selection_mode
+	info.text = "Kurulabilir santralleri seçmek için bir karta tıkla." if plant_selection_mode else "Santral seçimi kapatıldı."
 	refresh()
 
 func close_selected_plant() -> void:
@@ -804,7 +822,7 @@ func hover_cell(index: int) -> void:
 		board_view.tooltip_text = "%s: seçmek için tıkla" % plant.name
 		return
 	board_view.tooltip_text = "Boş arazi: seçili santrali kur"
-	board_view.show_hover(index if phase in ["build", "review"] else -1, money >= price(selected))
+	board_view.show_hover(index if phase in ["build", "review"] and plant_selected else -1, plant_selected and money >= price(selected))
 
 func place(index: int) -> void:
 	if phase not in ["build", "review"]:
@@ -812,8 +830,13 @@ func place(index: int) -> void:
 	if board[index] >= 0:
 		selected_cell = index
 		selected = board[index]
+		plant_selected = false
+		plant_selection_mode = false
 		info.text = "%s seçildi. Sağdaki düğmeyle santrali kapatabilirsin." % D.PLANTS[selected].name
 		refresh()
+		return
+	if not plant_selected:
+		info.text = "Önce SANTRAL SEÇ düğmesine tıklayıp bir santral seçmelisin."
 		return
 	if money < price(selected):
 		info.text = "Bu santral için bütçen yetmiyor."
@@ -1016,7 +1039,12 @@ func refresh() -> void:
 	metrics[1].text = "ENERJİ ARZI\n%d / %d" % [energy(), demand()]
 	metrics[2].text = "KİRLİLİK\n%d / 100" % pollution
 	metrics[3].text = "HALK DESTEĞİ\n%d / 100" % support
-	selected_hint.text = "SEÇİLİ SANTRAL  •  %s  •  %d BÜTÇE" % [D.PLANTS[selected].name.to_upper(), price(selected)]
+	if plant_selection_mode:
+		selected_hint.text = "SANTRAL SEÇ  •  UYGUN KARTLAR YUKARIDA"
+	elif plant_selected:
+		selected_hint.text = "SEÇİLİ SANTRAL  •  %s  •  %d BÜTÇE" % [D.PLANTS[selected].name.to_upper(), price(selected)]
+	else:
+		selected_hint.text = "SANTRAL SEÇ  •  DEVAM ETMEK İÇİN BİR SANTRAL SEÇ"
 	if board_view != null:
 		board_view.set_board(board, phase in ["build", "review"])
 		hover_cell(board_view.pointer_cell)
@@ -1025,17 +1053,31 @@ func refresh() -> void:
 		shop_names[i].text = ("%s  " % ("◆" if selected == i else "○")) + plant.name
 		shop_stats[i].text = "◉ %d bütçe   ⚡ %d enerji   ☣ %d kirlilik" % [price(i), plant.energy, plant.pollution]
 		shops[i].tooltip_text = "%s\n◉ Maliyet: %d bütçe\n⚡ Enerji: +%d\n☣ Kirlilik: +%d" % [plant.name, price(i), plant.energy, plant.pollution]
-		shops[i].disabled = phase not in ["build", "review"]
+		shops[i].disabled = phase not in ["build", "review"] or not plant_selection_mode or money < price(i)
+		animate_shop(shops[i], plant_selection_mode and money >= price(i))
 	var close_button := planning_panel.find_child("ClosePlantButton", true, false) as Button
 	if close_button != null:
-		close_button.disabled = phase not in ["build", "review"] or selected_cell < 0
-		close_button.text = "SANTRALİ KAPAT" if selected_cell >= 0 else "SANTRAL SEÇ"
+		close_button.disabled = phase not in ["build", "review"]
+		close_button.text = "SANTRALİ KAPAT" if selected_cell >= 0 else ("SEÇİMİ KAPAT" if plant_selection_mode else "SANTRAL SEÇ")
 	planning_panel.visible = phase != "cards"
 	map_panel.modulate = Color(0.55, 0.7, 0.76, 1.0) if phase == "cards" else Color.WHITE
 	if phase == "build":
 		build_title.text = "ŞEHRİ HAZIRLA"
 	elif phase == "ended":
 		build_title.text = "OYUN SONU"
+
+func animate_shop(shop: Button, lifted: bool) -> void:
+	shop.pivot_offset = Vector2(shop.size.x * 0.5, shop.size.y)
+	var target_scale := Vector2(1.0, 1.0)
+	var target_modulate := Color.WHITE
+	if lifted:
+		target_scale = Vector2(1.035, 1.12)
+		target_modulate = Color("#d9fff3")
+	if shop.scale.is_equal_approx(target_scale) and shop.modulate.is_equal_approx(target_modulate):
+		return
+	var tween := shop.create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(shop, "scale", target_scale, 0.16)
+	tween.parallel().tween_property(shop, "modulate", target_modulate, 0.16)
 
 func card_input(event: InputEvent) -> void:
 	pass
