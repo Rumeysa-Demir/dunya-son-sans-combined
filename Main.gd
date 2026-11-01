@@ -828,16 +828,13 @@ func place(index: int) -> void:
 	if phase not in ["build", "review"]:
 		return
 	if board[index] >= 0:
-		if not removal_mode:
-			info.text = "Santrali silmek için SANTRAL SEÇ düğmesine tıklamalısın."
-			return
+		removal_mode = true
 		selected_cell = index
 		selected = board[index]
-		info.text = "%s seçildi. Sağdaki düğmeyle santrali kapatabilirsin." % D.PLANTS[selected].name
+		info.text = "%s seçildi. SANTRALİ KALDIR düğmesine basarak santrali kaldırabilirsin." % D.PLANTS[selected].name
 		refresh()
 		return
 	if removal_mode:
-		info.text = "Silme modunda boş arazi seçilemez."
 		return
 	if money < price(selected):
 		info.text = "Bu santral için bütçen yetmiyor."
